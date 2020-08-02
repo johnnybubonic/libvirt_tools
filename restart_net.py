@@ -44,8 +44,8 @@ class DomainNetwork(object):
         _netnames = []
         for iface in self.dom_xml.xpath('devices/interface'):
             if iface.attrib.get('type') == 'network':
-                netname = src_xml.attrib.get('network')
                 src_xml = iface.find('source')
+                netname = src_xml.attrib.get('network')
                 if src_xml is not None and netname in netnames and not chk:
                     # Why, oh why, does the libvirt API want the XML??
                     self.ifaces.append(etree.tostring(iface).decode('utf-8'))
