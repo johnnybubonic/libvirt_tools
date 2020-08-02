@@ -94,7 +94,7 @@ class VMManager(object):
         for dom in self.conn.listAllDomains(flags = _findflags):
             domnet = DomainNetwork(dom)
             domnet.get_nets(netnames)
-            if dom.ifaces:
+            if domnet.ifaces:
                 doms[uuid.UUID(bytes = dom.UUID())] = domnet
         for n in self.networks:
             n.destroy()
