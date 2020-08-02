@@ -30,18 +30,30 @@ class DomainNetwork(object):
     def __init__(self, dom):
         # dom is a libvirt.virDomain (or whatever it's called) instance.
         self.dom = dom
-        self.dom_xml = etree.fromstring(dom.XMLDesc())
+        self.dom_xml = None
         self.ifaces = []
+        self._get_xml()
 
-    def get_nets(self, netnames):
-        for iface in self.dom_xml.xpath('devices/interface'):
-            if iface.attrib.get('type') == 'network':
-                src_xml = iface.find('source')
-                if src_xml is not None and src_xml.attrib.get('network') in netnames:
-                    # Why, oh why, does the libvirt API want the XML??
-                    self.ifaces.append(etree.tostring(iface).decode('utf-8'))
+    def _get_xml(self):
+        self.dom_xml = etree.fromstring(self.dom.XMLDesc())
         return(None)
 
+    def get_nets(self, netnames, chk = None):
+        if not self.ifaces and chk:
+            return(None)
+        _netnames = []
+        for iface in self.dom_xml.xpath('devices/interface'):
+            if iface.attrib.get('type') == 'network':
+                netname = src_xml.attrib.get('network')
+                src_xml = iface.find('source')
+                if src_xml is not None and netname in netnames and not chk:
+                    # Why, oh why, does the libvirt API want the XML??
+                    self.ifaces.append(etree.tostring(iface).decode('utf-8'))
+                elif src_xml is not None and netname in netnames:
+                    _netnames.append(netname)
+        if chk:
+            pass  # TODO: confirm that network is removed so we can remove the time.sleep() below.
+        return(None)
 
 class VMManager(object):
     def __init__(self, netname, restart_guests = True, uri = _def_uri, *args, **kwargs):
@@ -104,6 +116,8 @@ class VMManager(object):
                 # Nice that we don't actually need to shut the machine down.
                 # Here be dragons, though, if the OS doesn't understand NIC hotplugging.
                 domnet.dom.detachDeviceFlags(iface_xml, flags = _ifaceflags)
+                # TODO: modify DomainNetwork so we can check if an interface is removed or not. How?
+                time.sleep(3)
                 domnet.dom.attachDeviceFlags(iface_xml, flags = _ifaceflags)
         self._disconnect()
         if not doms:
