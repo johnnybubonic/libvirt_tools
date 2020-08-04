@@ -55,6 +55,7 @@ class DomainNetwork(object):
             pass  # TODO: confirm that network is removed so we can remove the time.sleep() below.
         return(None)
 
+
 class VMManager(object):
     def __init__(self, netname, restart_guests = True, uri = _def_uri, *args, **kwargs):
         self.netname = netname
